@@ -1,0 +1,101 @@
+---
+title: "Q1"
+output: html_document
+---
+
+```{r include=FALSE}
+#load all your libraries in this chunk
+library(wordcloud)
+library(RSQLite)
+library(sp)
+library(twitteR)
+library(DBI)
+library(rworldmap)
+library(rworldxtra)
+library(twitteR)
+library(wordcloud)
+library(rvest)
+library(RCurl)
+library(dplyr)
+```
+a
+----
+```{r}
+getwd()
+dbcon = dbConnect(SQLite(), dbname = "FinalTables.sqlite")
+dbListTables(dbcon)
+```
+b
+----
+```{r}
+query_table_info = "PRAGMA table_info('Airport')"
+(dbGetQuery(dbcon,query_table_info))
+query_table_info2 = "PRAGMA table_info('NHL')"
+(dbGetQuery(dbcon,query_table_info2))
+```
+c
+----
+```{r}
+head(dbReadTable(dbcon,"NHL"),3)
+qrl = "SELECT HomeTeam, COUNT(HomeTeam) AS NUM_GAME FROM NHL GROUP BY HomeTeam"
+(dbGetQuery(dbcon,qrl))
+```
+d
+----
+```{r}
+qrl = "SELECT HomeTeam, MAX(HomeShots) AS max, MIN(HomeShots) AS min FROM NHL GROUP BY HomeTeam"
+(dbGetQuery(dbcon,qrl))
+```
+
+e
+----
+```{r}
+qrl = "CREATE VIEW Homegoalstable AS SELECT DISTINCT HomeTeam, AwayTeam, HomeGoals , HomeShots,AwayPenMin FROM NHL"
+dbSendQuery(dbcon,qrl)
+table = dbReadTable(dbcon,"Homegoalstable")
+plot(table$AwayPenMin,table$HomeGoals/table$HomeShots,type="p",main="Proportion of goals per shot \n vs Away team penalty",xlab="PenMIn",ylab="Porportion",col=c(1:length(unique(table$HomeTeam))))
+legend(x="topright",unique(table$HomeTeam),col = 1:30,pch = 1,cex = 0.5)
+```
+
+f
+----
+```{r}
+#Cant make it run, here is the code.Thx
+# check=
+# "SELECT * FROM Homegoalstable AS t,
+# (SELECT t1.HomeTeam, AVG(t2.HomeGoals) AS mavg
+# FROM Homegoalstable AS t1, Homegoalstable AS t2
+# WHERE t2.AwayPenMin BETWEEN (t1.AwayPenMin-15) AND (t1.AwayPenMin+0)
+# GROUP BY t1.AwayPenMin) sq WHERE (t.AwayPenMin = sq.AwayPenMin)"
+# movingAvg=dbGetQuery(dbcon, check)
+```
+g
+----
+```{r}
+initExtension(dbcon)
+(dbGetQuery(dbcon,"SELECT STDEV(passengers) AS Std_dev FROM Airport"))
+```
+
+h
+----
+```{r}
+worldmap = getMap(resolution = "high")
+NrthAm = worldmap[which(worldmap$REGION == "North America"), ]
+plot(NrthAm, col = "white", bg = "lightblue", xlim = c(-140, -55), ylim = c(55, 60))
+table1 = dbReadTable(dbcon,"Airport")
+points(table1$longitude,table1$latitude,col="red",cex=.5)
+```
+
+i
+----
+```{r}
+qrl = "SELECT HomePenMin FROM NHL"
+homepenmin = dbGetQuery(dbcon,qrl)
+homepenmin$HomePenMin = as.numeric(homepenmin$HomePenMin)
+
+count = c(-homepenmin$HomePenMin,homepenmin$HomePenMin)
+error = density(count,from = 0)
+hist(homepenmin$HomePenMin,freq = FALSE,breaks = 50,main = "Hist of Home team penalty time")
+lines(error$x,2*error$y,col=2)
+```
+

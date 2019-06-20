@@ -1,0 +1,84 @@
+---
+title: "Q2"
+output: html_document
+---
+
+```{r include=FALSE}
+#load all your libraries in this chunk
+library(wordcloud)
+library(RSQLite)
+library(sp)
+library(twitteR)
+library(DBI)
+library(rworldmap)
+library(rworldxtra)
+library(twitteR)
+library(wordcloud)
+library(rvest)
+library(RCurl)
+library(dplyr)
+```
+a
+----
+```{r}
+load("ExamVersion6.Rdata")
+```
+```{r}
+hashtag = twListToDF(NewHashOut)
+(nrow(hashtag))
+```
+b
+----
+```{r}
+timeline = twListToDF(NewUserTimeline)
+range(timeline$created)
+```
+c
+----
+```{r}
+nrow(hashtag[hashtag$isRetweet == TRUE,]) / nrow(hashtag)
+```
+d
+----
+```{r}
+temp = table(hashtag$screenName)
+topten =(sort(temp,decreasing = T)[1:10])
+par(mar=c(10,4,4,2))
+barplot(topten,las=2,main = "Top 10 User who is mentioning",xlab = "",ylab="Number",cex.names = 0.75,ylim = c(0,30))
+mtext("UserName",side = 1,line = 6)
+```
+
+e
+----
+```{r}
+translink = twListToDF(NewUserMentions)
+grep(OlsonNames(),pattern = "Canada",value = T)
+translink$created = as.POSIXct(as.integer(translink$created), origin = "1970-01-01", tz = "Canada/Pacific")
+TimeNum = as.numeric(difftime(translink$created, trunc(translink$created,"days"), tz = "Canada/Pacific", "hours"))
+hist(TimeNum,main = "Hist of Time Tweets (301346869)",xlab="Hours",freq = F)
+lines(density(TimeNum),col=2,lwd=2)
+```
+
+f
+----
+```{r}
+temp = tolower(hashtag$text)
+x = unlist(strsplit(temp," "))
+y = grep("#\\w+",x,value = T)
+z = table(y)
+wordcloud(names(z),z,colors=rainbow(8),random.order = F,max.words = 50)
+mtext("WordCloud",side = 3,line = 0) # Make a title for wordcloud
+```
+
+g
+----
+```{r}
+#Using an extra library
+library(lubridate)
+begin =as.Date("12dec1985", "%d%b%Y")
+begin = as.POSIXct(begin,origin = "1970-01-01",tz = "Canada/Pacific")
+(begin = begin -hours(4))
+end = begin + seconds(1000000000)
+(end)
+```
+

@@ -1,0 +1,90 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r}
+course_url = "https://www.sfu.ca/outlines.html?2019/spring/stat/240/d100"
+course_page = readLines(course_url)
+```
+
+```{r}
+(heading3 =grep("<h3", course_page,value=TRUE))
+```
+
+```{r}
+(heading3a=trimws(gsub("<[^<>]+>"," ", heading3)))
+```
+```{r}
+(index = grep("<h1 id=\"name\">", course_page,
+ignore.case = TRUE, value=TRUE))
+
+(title = course_page[index])
+
+(number1 = trimws(gsub("<[^<>]+>", " ", title)))
+(step1 = gsub(".*\\-", "", number1))
+
+```
+```{r}
+index = grep("<h2 id=\"title\">", course_page,
+ignore.case = TRUE)
+course_page[index + 1]
+trimws(course_page[index + 1])
+```
+```{r}
+index = grep("<h4>Instructor:</h4>", course_page,
+ignore.case = TRUE)
+course_page[index + 1]
+trimws(gsub("<[^<>]+>", " ", course_page[index + 1]))
+
+```
+```{r}
+index = grep("<h4>Course Times \\+ Location:</h4>",
+course_page, ignore.case = TRUE)
+
+(course_time = course_page[index + 1])
+(step1 = trimws(gsub("<[^<>]+>", " ",course_time)))
+(step2 = (gsub("&ndash;", "-", step1)))
+
+```
+
+```{r}
+(indexstart = grep("<h4>REQUIRED READING:</h4>", course_page, ignore.case = TRUE))
+(indexend = grep("<h4>Department Undergraduate Notes:</h4>",
+course_page, ignore.case = TRUE))
+
+(step1 = paste(course_page[(indexstart + 1):(indexend - 1)], collapse = ""))
+
+(step1 = trimws(gsub("<[^<>]+>", " ",step1)))
+```
+
+```{r}
+indexstart = grep("<h4>Exam Times \\+ Location:</h4>",course_page, ignore.case = TRUE)
+indexend = grep("<h4>Instructor:</h4>",course_page, ignore.case = TRUE)
+
+step1 = (grep(course_page[(indexstart +
+1):(indexend - 1)], pattern = "201\\d",value = TRUE))
+(step1 = trimws(gsub("<[^<>]+>", " ",step1)))
+
+
+(TimesAndLocation = gsub(grep(course_page[(indexstart +
+1):(indexend - 1)], pattern = "(A|P)M",
+value = TRUE), pattern = "\\s{2,}",
+replacement = " "))
+(Times = gsub(TimesAndLocation, pattern = "&ndash.*",
+replacement = ""))
+(Locations = gsub(TimesAndLocation, pattern = ".*<br>",
+replacement = ""))
+```
+
+```{r}
+library(rvest)
+library(RCurl)
+url2use = "https://en.wikipedia.org/wiki/List_of_Marvel_Cinematic_Universe_films"
+marvel_page = read_html(url2use)
+marvel_table = html_nodes(marvel_page,"table")
+
+ratingTable = html_table(marvel_table[[9]])
+BudgetTable = html_table(marvel_table[[8]],fill = TRUE)
+```
+

@@ -1,0 +1,59 @@
+---
+title: "Q3"
+output: html_document
+---
+
+```{r include=FALSE}
+#load all your libraries in this chunk
+library(wordcloud)
+library(RSQLite)
+library(sp)
+library(twitteR)
+library(DBI)
+library(rworldmap)
+library(rworldxtra)
+library(twitteR)
+library(wordcloud)
+library(rvest)
+library(RCurl)
+library(dplyr)
+```
+a
+----
+```{r}
+rl2use = "https://www.imdb.com/chart/top"
+movie_page = read_html(rl2use)
+movie_table = html_nodes(movie_page,"table")
+top=(html_table(movie_table[[1]]))
+head(top)
+```
+
+b
+----
+```{r}
+IMDbRating = as.numeric(as.character(top$`IMDb Rating`))
+step1 = as.character(top$`Rank & Title`)
+step2 = trimws(gsub("[[:punct:]]|[[:digit:]]","",step1))
+MovieName = step2
+temp = gsub(".*\\(","",step1)
+temp1 = (gsub(")","",temp))
+year = as.numeric(temp1)
+MovieRank = gsub("\\..*","",step1)
+MovieRank = as.numeric(MovieRank)
+TopMovieClean = data.frame(MovieRank,MovieName,year,IMDbRating)
+head(TopMovieClean)
+```
+
+c
+----
+```{r}
+plot(TopMovieClean$year,TopMovieClean$IMDbRating,main="IMDb Rating over all years",xlab="year",ylab="Ratings",col="lightblue",las=2,pch=20)
+```
+
+d
+----
+```{r}
+hist(TopMovieClean$year,freq = F,main = "Zhifan Shen",xlab = "Year",ylab = "Density",col = "wheat")
+lines(density(TopMovieClean$year),col=2,lwd=2)
+```
+
